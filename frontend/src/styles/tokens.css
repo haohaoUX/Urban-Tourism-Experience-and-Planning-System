@@ -1,0 +1,54 @@
+/* 设计 Token：与视觉风格规范对应 */
+:root {
+  /* 品牌与类型色 */
+  --brand: #3a7bd5;
+  --brand-soft: #5aa9f0;
+  --c-spot: #3a7bd5;
+  --c-food: #e8833a;
+  --c-leisure: #3aa76d;
+  --c-facility: #8a93a3;
+
+  /* 背景与文字（浅色） */
+  --bg: #eef2f7;
+  --bg-glow-1: rgba(90, 169, 240, 0.25);
+  --bg-glow-2: rgba(232, 131, 58, 0.16);
+  --text: #1c2430;
+  --text-2: #51606f;
+  --text-3: #8a93a3;
+
+  /* 玻璃材质 */
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-bg-strong: rgba(255, 255, 255, 0.74);
+  --glass-border: rgba(255, 255, 255, 0.66);
+  --glass-inset: inset 0 1px 1px rgba(255, 255, 255, 0.6);
+  --glass-shadow: 0 10px 34px rgba(31, 45, 70, 0.13);
+  --blur: 18px;
+
+  /* 圆角与间距 */
+  --r-lg: 22px;
+  --r-md: 16px;
+  --r-sm: 12px;
+  --r-pill: 999px;
+  --gap: 14px;
+
+  /* 字体与缓动 */
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --ease: cubic-bezier(0.34, 1.3, 0.5, 1);
+  --ease-soft: cubic-bezier(0.25, 0.8, 0.3, 1);
+}
+
+[data-theme="dark"] {
+  --bg: #11161f;
+  --bg-glow-1: rgba(58, 123, 213, 0.28);
+  --bg-glow-2: rgba(232, 131, 58, 0.12);
+  --text: #e8edf4;
+  --text-2: #aab6c4;
+  --text-3: #74808f;
+
+  --glass-bg: rgba(28, 36, 48, 0.55);
+  --glass-bg-strong: rgba(28, 36, 48, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-inset: inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 10px 34px rgba(0, 0, 0, 0.4);
+}
