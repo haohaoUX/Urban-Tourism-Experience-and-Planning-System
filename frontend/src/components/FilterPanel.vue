@@ -1,39 +1,41 @@
 <template>
-  <transition name="slide">
+  <transition name="pop">
     <div v-if="open" class="filter-panel glass">
-      <div class="head">
-        <span>筛选</span>
-        <button class="link" @click="$emit('reset')">重置</button>
-      </div>
-
-      <p class="label">类型</p>
-      <div class="chips">
-        <button
-          v-for="t in TYPES"
-          :key="t.value"
-          class="chip"
-          :class="{ on: types.includes(t.value) }"
-          :style="on ? chipColor(t.value) : null"
-          @click="$emit('toggle-type', t.value)"
-        >
-          {{ t.label }}
-        </button>
-      </div>
-
-      <p class="label">行政区</p>
-      <div class="chips">
+      <p class="group-title">行政区</p>
+      <div class="group">
         <button
           v-for="d in DISTRICTS"
           :key="d"
-          class="chip"
+          class="chk"
           :class="{ on: districts.includes(d) }"
           @click="$emit('toggle-district', d)"
         >
+          <span class="box">
+            <svg viewBox="0 0 24 24">
+              <path d="m5 12 5 5L20 7" />
+            </svg>
+          </span>
           {{ d }}
         </button>
       </div>
 
-      <button class="done" @click="$emit('close')">完成</button>
+      <p class="group-title">点位类型</p>
+      <div class="group">
+        <button
+          v-for="t in TYPES"
+          :key="t.value"
+          class="chk"
+          :class="{ on: types.includes(t.value) }"
+          @click="$emit('toggle-type', t.value)"
+        >
+          <span class="box">
+            <svg viewBox="0 0 24 24">
+              <path d="m5 12 5 5L20 7" />
+            </svg>
+          </span>
+          {{ t.label }}
+        </button>
+      </div>
     </div>
   </transition>
 </template>
@@ -41,9 +43,9 @@
 <script setup>
 const TYPES = [
   { value: "spot", label: "景点" },
-  { value: "food", label: "美食" },
-  { value: "leisure", label: "休闲" },
-  { value: "facility", label: "配套" },
+  { value: "food", label: "正餐美食" },
+  { value: "leisure", label: "休闲市集小店" },
+  { value: "facility", label: "配套服务" },
 ]
 const DISTRICTS = [
   "东湖区",
@@ -53,90 +55,85 @@ const DISTRICTS = [
   "青山湖区",
   "新建区",
 ]
-
 defineProps({
   open: Boolean,
   types: Array,
   districts: Array,
 })
-defineEmits([
-  "toggle-type",
-  "toggle-district",
-  "reset",
-  "close",
-])
-
-const chipColor = (value) => {
-  const map = {
-    spot: "var(--c-spot)",
-    food: "var(--c-food)",
-    leisure: "var(--c-leisure)",
-    facility: "var(--c-facility)",
-  }
-  return { "--chip": map[value] }
-}
+defineEmits(["toggle-type", "toggle-district"])
 </script>
 
 <style scoped>
 .filter-panel {
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 96px;
-  border-radius: var(--r-lg);
-  padding: 18px;
-  z-index: 30;
+  border-radius: var(--r-l);
+  padding: 14px;
 }
-.head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 700;
-  font-size: 16px;
+.group-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+  margin: 4px 2px 8px;
+  letter-spacing: 0.5px;
 }
-.link {
-  font-size: 13px;
-  color: var(--brand);
-}
-.label {
-  margin: 16px 0 8px;
-  font-size: 13px;
-  color: var(--text-2);
-}
-.chips {
+.group {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 7px;
+  margin-bottom: 12px;
 }
-.chip {
-  padding: 7px 14px;
-  border-radius: var(--r-pill);
-  font-size: 13px;
-  background: rgba(128, 140, 155, 0.14);
+.group:last-child {
+  margin-bottom: 2px;
+}
+.chk {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--text-2);
+  padding: 6px 10px 6px 7px;
+  border-radius: 18px;
+  background: var(--glass-inner);
   border: 1px solid transparent;
-  transition: 0.2s var(--ease-soft);
+  transition: all 0.18s var(--ease);
+  min-height: 32px;
 }
-.chip.on {
-  color: #fff;
-  background: var(--chip, var(--brand));
-  border-color: transparent;
+.box {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  border: 1.5px solid var(--text-3);
+  display: grid;
+  place-items: center;
+  transition: all 0.18s var(--ease);
 }
-.done {
-  margin-top: 18px;
-  width: 100%;
-  padding: 12px;
-  border-radius: var(--r-md);
-  background: var(--brand);
-  color: #fff;
-  font-weight: 600;
-}
-.slide-enter-active,
-.slide-leave-active {
-  transition: 0.28s var(--ease);
-}
-.slide-enter-from,
-.slide-leave-to {
+.box svg {
+  width: 10px;
+  height: 10px;
+  stroke: #fff;
+  stroke-width: 2.4;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   opacity: 0;
-  transform: translateY(20px);
+}
+.chk.on {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.chk.on .box {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.chk.on .box svg {
+  opacity: 1;
+}
+.pop-enter-active,
+.pop-leave-active {
+  transition: 0.24s var(--spring);
+}
+.pop-enter-from,
+.pop-leave-to {
+  opacity: 0;
+  transform: scale(0.94);
 }
 </style>

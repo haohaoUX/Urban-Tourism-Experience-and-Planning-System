@@ -1,71 +1,77 @@
 @import "./tokens.css";
 
 * {
-  box-sizing: border-box;
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
-
 html,
 body,
 #app {
   height: 100%;
 }
-
 body {
-  font-family: var(--font);
+  background: var(--bg);
   color: var(--text);
-  background:
-    radial-gradient(60% 45% at 15% 8%, var(--bg-glow-1), transparent 70%),
-    radial-gradient(55% 45% at 88% 92%, var(--bg-glow-2), transparent 70%),
-    var(--bg);
-  background-attachment: fixed;
-  -webkit-font-smoothing: antialiased;
   overflow: hidden;
+  font-family: var(--font);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
 }
-
 button {
   font-family: inherit;
   border: none;
-  cursor: pointer;
-  color: inherit;
   background: none;
+  color: inherit;
+  cursor: pointer;
 }
-
 input {
   font-family: inherit;
 }
 
-.glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--blur)) saturate(160%);
-  -webkit-backdrop-filter: blur(var(--blur)) saturate(160%);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow), var(--glass-inset);
-}
-
-.app-shell {
+.app {
   position: relative;
-  max-width: 520px;
-  height: 100%;
-  margin: 0 auto;
+  height: 100dvh;
   overflow: hidden;
 }
-
 .view {
   position: absolute;
   inset: 0;
-  padding-bottom: 84px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s var(--ease);
+}
+.view.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-m);
+}
+@supports not (backdrop-filter: blur(1px)) {
+  .glass {
+    background: var(--glass-bg-strong);
+  }
 }
 
 ::-webkit-scrollbar {
-  width: 0;
-  height: 0;
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--text-3);
+  border-radius: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
   * {
-    transition: none !important;
-    animation: none !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }

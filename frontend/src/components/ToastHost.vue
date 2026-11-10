@@ -15,24 +15,26 @@ import { state } from "../stores/trip"
 <style scoped>
 .toast-host {
   position: absolute;
-  top: 70px;
-  left: 0;
-  right: 0;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  z-index: 60;
   pointer-events: none;
 }
 .toast {
-  padding: 10px 20px;
-  border-radius: var(--r-pill);
-  font-size: 13px;
+  border-radius: var(--r-m);
+  padding: 11px 18px;
+  font-size: 13.5px;
+  font-weight: 500;
+  max-width: 80vw;
 }
 .toast-enter-active,
 .toast-leave-active {
-  transition: 0.28s var(--ease);
+  transition: 0.25s var(--ease);
 }
 .toast-enter-from,
 .toast-leave-to {

@@ -1,73 +1,72 @@
 <template>
-  <div class="view map-view">
-    <!-- 顶部 -->
-    <header class="top">
-      <div class="title-row">
-        <h1>洪城漫游</h1>
-        <button class="theme-btn" @click="toggleTheme">
-          <svg viewBox="0 0 24 24" width="18" height="18">
-            <path
-              fill="currentColor"
-              d="M12 18a6 6 0 100-12 6 6 0 000 12zM11 1h2v3h-2zm0 19h2v3h-2zM3.5 4.9l1.4-1.4 2.1 2.1-1.4 1.4zm13.5 13.5l2.1 2.1 1.4-1.4-2.1-2.1zM1 11h3v2H1zm19 0h3v2h-3zM3.5 19.1l2.1-2.1 1.4 1.4-2.1 2.1zM17 7l2.1-2.1 1.4 1.4-2.1 2.1z"
-            />
-          </svg>
-        </button>
-      </div>
-      <SearchBox @search="onSearch" @clear="onSearch('')" />
-    </header>
-
+  <section class="view active">
     <MockMap
-      :pois="visiblePois"
+      :pois="pois"
+      :visible-ids="visibleIds"
       :selected-ids="state.selectedIds"
       :marked-ids="state.markedIds"
       :favorite-ids="state.favoriteIds"
       @select="openDetail"
     />
 
-    <MapControls
-      :filter-active="filterActive"
-      :mark-active="markMode"
-      @toggle-filter="toggleFilterPanel"
-      @toggle-mark="toggleMarkMode"
+    <SearchBar
+      @search="onSearch"
+      @clear="keyword = ''"
     />
 
-    <FilterPanel
-      :open="filterOpen"
+    <button class="fab theme-btn glass" title="切换深浅色" @click="toggleTheme">
+      <svg viewBox="0 0 24 24">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z" />
+      </svg>
+    </button>
+
+    <MapSidebar
+      :filter-open="filterOpen"
+      :mark-active="markMode"
       :types="types"
       :districts="districts"
-      @toggle-type="toggleType"
-      @toggle-district="toggleDistrict"
-      @reset="resetFilter"
-      @close="filterOpen = false"
+      :selected-pois="selectedPois"
+      :total-count="state.selectedIds.length"
+      @toggle-filter="filterOpen = !filterOpen"
+      @toggle-mark="toggleMarkMode"
+      @toggle-type="toggleIn(types, $event)"
+      @toggle-district="toggleIn(districts, $event)"
+      @remove="onRemove"
+      @clear="onClear"
+      @locate="openDetail"
     />
 
-    <POIDetail
+    <button class="fab reset-btn glass" title="复位视角" @click="onReset">
+      <svg viewBox="0 0 24 24">
+        <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+        <path d="M3 3v5h5" />
+      </svg>
+    </button>
+
+    <DetailCard
       :poi="currentPoi"
       :selected="isSelected"
       :marked="isMarked"
-      :favored="isFavored"
-      @close="currentPoi = null"
-      @toggle-add="onToggleAdd"
-      @toggle-mark="onToggleMark"
-      @toggle-favorite="onToggleFavorite"
+      @add="onAdd"
+      @nearby="onNearby"
+      @mark="onMark"
     />
-  </div>
+  </section>
 </template>
 
 <script setup>
 import { computed, onMounted, ref } from "vue"
 import MockMap from "../components/MockMap.vue"
-import MapControls from "../components/MapControls.vue"
-import FilterPanel from "../components/FilterPanel.vue"
-import POIDetail from "../components/POIDetail.vue"
-import SearchBox from "../components/SearchBox.vue"
-import { fetchPois } from "../api/poi"
+import SearchBar from "../components/SearchBar.vue"
+import MapSidebar from "../components/MapSidebar.vue"
+import DetailCard from "../components/DetailCard.vue"
+import { fetchNearby, fetchPois } from "../api/poi"
 import {
   addSelected,
+  clearSelected,
   removeSelected,
   showToast,
   state,
-  toggleFavorite,
   toggleMarked,
   toggleTheme,
 } from "../stores/trip"
@@ -89,52 +88,59 @@ onMounted(async () => {
   }
 })
 
-const filterActive = computed(
-  () =>
-    types.value.length > 0 ||
-    districts.value.length > 0 ||
-    keyword.value !== ""
-)
-
-const visiblePois = computed(() => {
+const visibleIds = computed(() => {
+  let list = pois.value
   if (markMode.value) {
-    return pois.value.filter((p) =>
-      state.markedIds.includes(p.poi_id)
-    )
+    return list
+      .filter((p) => state.markedIds.includes(p.poi_id))
+      .map((p) => p.poi_id)
   }
-  return pois.value.filter((p) => {
-    if (types.value.length && !types.value.includes(p.type))
-      return false
-    if (
-      districts.value.length &&
-      !districts.value.includes(p.district)
-    )
-      return false
-    if (
-      keyword.value &&
-      !p.name.includes(keyword.value)
-    )
-      return false
-    return true
-  })
+  return list
+    .filter((p) => {
+      if (types.value.length && !types.value.includes(p.type))
+        return false
+      if (
+        districts.value.length &&
+        !districts.value.includes(p.district)
+      )
+        return false
+      if (keyword.value && !p.name.includes(keyword.value))
+        return false
+      return true
+    })
+    .map((p) => p.poi_id)
 })
 
-function toggleInList(list, value) {
+const selectedPois = computed(() =>
+  state.selectedIds
+    .map((id) => pois.value.find((p) => p.poi_id === id))
+    .filter(Boolean)
+)
+
+const isSelected = computed(() =>
+  currentPoi.value
+    ? state.selectedIds.includes(currentPoi.value.poi_id)
+    : false
+)
+
+const isMarked = computed(() =>
+  currentPoi.value
+    ? state.markedIds.includes(currentPoi.value.poi_id)
+    : false
+)
+
+function onMark(poi) {
+  toggleMarked(poi.poi_id)
+  const on = state.markedIds.includes(poi.poi_id)
+  showToast(on ? `已标记「${poi.name}」` : `已取消标记「${poi.name}」`)
+}
+
+function toggleIn(list, value) {
   const i = list.value.indexOf(value)
   if (i >= 0) list.value.splice(i, 1)
   else list.value.push(value)
 }
-const toggleType = (t) => toggleInList(types, t)
-const toggleDistrict = (d) => toggleInList(districts, d)
-function resetFilter() {
-  types.value = []
-  districts.value = []
-  keyword.value = ""
-}
 
-function toggleFilterPanel() {
-  filterOpen.value = !filterOpen.value
-}
 function toggleMarkMode() {
   markMode.value = !markMode.value
   showToast(markMode.value ? "标记模式：仅显示我的标记" : "已退出标记模式")
@@ -147,75 +153,82 @@ function onSearch(kw) {
 function openDetail(poi) {
   currentPoi.value = poi
 }
-const isSelected = computed(() =>
-  currentPoi.value
-    ? state.selectedIds.includes(currentPoi.value.poi_id)
-    : false
-)
-const isMarked = computed(() =>
-  currentPoi.value
-    ? state.markedIds.includes(currentPoi.value.poi_id)
-    : false
-)
-const isFavored = computed(() =>
-  currentPoi.value
-    ? state.favoriteIds.includes(currentPoi.value.poi_id)
-    : false
-)
 
-function onToggleAdd(poi) {
-  if (state.selectedIds.includes(poi.poi_id)) {
-    removeSelected(poi.poi_id)
-    showToast("已从待选清单移除")
-    return
-  }
+function onAdd(poi) {
   addSelected(poi.poi_id)
   const n = state.selectedIds.length
   if (n >= 15 && n % 5 === 0) {
-    showToast(`已选 ${n} 个点位，行程较满，注意合理安排时间`)
+    showToast(`已选择 ${n} 个点位，数量较多，可能影响单日游览体验`)
   } else {
-    showToast("已加入待选清单")
+    showToast(`已添加「${poi.name}」`)
   }
 }
-function onToggleMark(poi) {
-  toggleMarked(poi.poi_id)
-  showToast(
-    state.markedIds.includes(poi.poi_id) ? "已标记" : "已取消标记"
-  )
+
+function onRemove(id) {
+  removeSelected(id)
+  if (currentPoi.value?.poi_id === id) currentPoi.value = null
 }
-function onToggleFavorite(poi) {
-  toggleFavorite(poi.poi_id)
-  showToast(
-    state.favoriteIds.includes(poi.poi_id) ? "已收藏" : "已取消收藏"
-  )
+
+function onClear() {
+  if (!state.selectedIds.length) {
+    showToast("清单已经是空的")
+    return
+  }
+  clearSelected()
+  showToast("已清空全部待选点位")
+}
+
+async function onNearby(poi) {
+  try {
+    const res = await fetchNearby(poi.poi_id, 1000)
+    const items = res.data
+    if (!items.length) {
+      showToast("周边 1 公里内暂无收录点位")
+      return
+    }
+    const names = items.slice(0, 3).map((x) => x.name).join("、")
+    showToast(
+      `周边 1 公里内有 ${items.length} 个点位：${names}` +
+        (items.length > 3 ? " 等" : "")
+    )
+  } catch (e) {
+    showToast(e.message)
+  }
+}
+
+function onReset() {
+  showToast("视角已复位至南昌全域")
 }
 </script>
 
 <style scoped>
-.top {
+.fab {
   position: absolute;
-  top: 14px;
-  left: 14px;
-  right: 14px;
   z-index: 25;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-m);
+  display: grid;
+  place-items: center;
 }
-.title-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-h1 {
-  font-size: 24px;
-  letter-spacing: 1px;
+.fab svg {
+  width: 19px;
+  height: 19px;
+  stroke: var(--text-2);
+  fill: none;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .theme-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-2);
+  right: 18px;
+  top: 16px;
+}
+.reset-btn {
+  right: 18px;
+  bottom: 108px;
+}
+.fab:active {
+  transform: scale(0.94);
 }
 </style>
