@@ -9,6 +9,12 @@ __pycache__/
 .venv/
 venv/
 
+# 测试与覆盖率
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
 # 环境变量
 .env
 
