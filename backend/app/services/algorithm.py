@@ -20,6 +20,8 @@ def haversine_km(a, b) -> float:
 
 def nearest_neighbor(pois: List) -> List:
     """顺路最优：最近邻启发式排序，起点取清单第一个。"""
+    if not pois:
+        return []
     remaining = list(pois)
     ordered = [remaining.pop(0)]
     while remaining:
